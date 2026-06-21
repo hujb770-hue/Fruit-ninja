@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+                <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fruit Ninja - Fixed Edition</title>
+    <title>Fruit Ninja - Ultra Fix</title>
     <style>
         * {
             box-sizing: border-box;
@@ -11,7 +11,6 @@
             padding: 0;
             user-select: none;
             -webkit-user-select: none;
-            touch-action: none;
         }
         body, html {
             width: 100%;
@@ -26,15 +25,18 @@
             height: 100%;
             max-width: 500px;
             margin: 0 auto;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
-            background-size: cover;
-            background-position: center;
+            background-color: #222;
         }
         canvas {
             display: block;
             width: 100%;
             height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
         }
+        /* Окна меню поверх холста */
         .screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -42,51 +44,48 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 10;
+            z-index: 100; /* Самый высокий приоритет, чтобы кнопки кликались */
+            background: rgba(20, 10, 5, 0.6);
         }
         .hidden { display: none !important; }
 
-        #main-menu {
-            background: rgba(0,0,0,0.4);
-        }
         .logo {
-            font-size: 42px;
+            font-size: 46px;
             color: #e74c3c;
             text-shadow: 3px 3px 0 #f39c12, -2px -2px 0 #000;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
             text-align: center;
             transform: rotate(-5deg);
         }
         .logo span { color: #2ecc71; }
         
-        /* Кнопки теперь имеют pointer-events: auto, чтобы точно ловить клики */
+        /* Крупные, легко нажимаемые кнопки */
         .menu-btn {
             background: #e67e22;
             color: white;
             border: 4px solid #d35400;
             border-radius: 30px;
-            padding: 15px 40px;
-            font-size: 24px;
+            padding: 20px 50px;
+            font-size: 28px;
             cursor: pointer;
-            margin: 10px;
-            min-width: 200px;
+            margin: 15px;
+            min-width: 240px;
             text-align: center;
             text-shadow: 2px 2px 0 #000;
-            box-shadow: 0 5px 0 #a04000;
-            pointer-events: auto; 
+            box-shadow: 0 6px 0 #a04000;
+            display: block;
         }
         .menu-btn:active {
             transform: translateY(4px);
-            box-shadow: 0 1px 0 #a04000;
+            box-shadow: 0 2px 0 #a04000;
         }
 
         #shop-screen {
-            background: rgba(20, 10, 5, 0.98);
+            background: rgba(25, 15, 10, 0.98);
             color: white;
             padding: 20px;
             justify-content: flex-start;
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
         }
         .shop-header {
             font-size: 28px;
@@ -123,16 +122,9 @@
             padding: 15px 10px;
             text-align: center;
             cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            pointer-events: auto;
         }
         .shop-item.active { border-color: #2ecc71; background: #27ae60; }
         .shop-item.purchased:not(.active) { border-color: #f1c40f; }
-        .item-name { font-size: 14px; margin-bottom: 8px; }
-        .item-price { font-size: 12px; color: #f1c40f; font-weight: bold; }
 
         #gui {
             position: absolute;
@@ -142,27 +134,12 @@
             display: flex;
             justify-content: space-between;
             pointer-events: none;
-            z-index: 5;
+            z-index: 10;
         }
         .stat {
             font-size: 24px;
             color: white;
             text-shadow: 2px 2px 0 #000;
-        }
-        #combo-text {
-            position: absolute;
-            font-size: 30px;
-            color: #f1c40f;
-            text-shadow: 2px 2px #000;
-            font-weight: bold;
-            pointer-events: none;
-            z-index: 6;
-            animation: pop 0.5s ease-out forwards;
-        }
-        @keyframes pop {
-            0% { transform: scale(0.5); opacity: 0; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(1); opacity: 0; }
         }
     </style>
 </head>
@@ -178,12 +155,12 @@
 
     <div id="main-menu" class="screen">
         <div class="logo">FRUIT<br><span>NINJA</span></div>
-        <div class="menu-btn" id="start-btn">ИГРАТЬ</div>
-        <div class="menu-btn" id="shop-btn">МАГАЗИН</div>
+        <button class="menu-btn" id="start-btn">ИГРАТЬ</button>
+        <button class="menu-btn" id="shop-btn">МАГАЗИН</button>
     </div>
 
     <div id="shop-screen" class="screen hidden">
-        <div class="shop-header">КУЗНИЦА И КЛАН</div>
+        <div class="shop-header">МАГАЗИН</div>
         <div class="currency" id="shop-coins">Монеты: 0</div>
         
         <div class="shop-section">
@@ -192,11 +169,11 @@
         </div>
 
         <div class="shop-section">
-            <div class="section-title">Эффекты Лезвия</div>
+            <div class="section-title">Лезвие</div>
             <div class="shop-grid" id="blade-grid"></div>
         </div>
 
-        <div class="menu-btn" id="back-btn" style="font-size: 18px; padding: 10px; min-width: 150px; margin-top: 20px;">НАЗАД</div>
+        <button class="menu-btn" id="back-btn" style="font-size: 18px; padding: 10px; min-width: 150px;">НАЗАД</button>
     </div>
 </div>
 
@@ -215,16 +192,14 @@
 
     const store = {
         backgrounds: [
-            { id: 'wood', name: 'Дерево (Стандарт)', type: 'wood', price: 0, style: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url("data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 100 100\'><rect width=\'100\' height=\'100\' fill=\'%238B5A2B\'/><path d=\'M0 10h100M0 30h100M0 50h100M0 70h100M0 90h100\' stroke=\'%235c3a1a\' stroke-width=\'2\'/></svg>")' },
-            { id: 'dojo', name: 'Додзё Сенсея', type: 'color', price: 15, style: '#2c3e50' },
-            { id: 'cherry', name: 'Сакура', type: 'color', price: 40, style: '#ffb6c1' },
-            { id: 'night', name: 'Ночной Ниндзя', type: 'color', price: 75, style: '#111222' }
+            { id: 'wood', name: 'Дерево', type: 'wood', price: 0, style: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url("data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 100 100\'><rect width=\'100\' height=\'100\' fill=\'%238B5A2B\'/><path d=\'M0 10h100M0 30h100M0 50h100M0 70h100M0 90h100\' stroke=\'%235c3a1a\' stroke-width=\'2\'/></svg>")' },
+            { id: 'dojo', name: 'Додзё', type: 'color', price: 15, style: '#2c3e50' },
+            { id: 'cherry', name: 'Сакура', type: 'color', price: 40, style: '#ffb6c1' }
         ],
         blades: [
-            { id: 'classic', name: 'Оригинал (Белый)', color: '#ffffff', price: 0, effect: 'smoke' },
+            { id: 'classic', name: 'Оригинал', color: '#ffffff', price: 0, effect: 'smoke' },
             { id: 'fire', name: 'Огонь', color: '#ff4500', price: 25, effect: 'fire' },
-            { id: 'ice', name: 'Лёд', color: '#00bfff', price: 50, effect: 'ice' },
-            { id: 'rainbow', name: 'Радуга', color: 'rainbow', price: 100, effect: 'rainbow' }
+            { id: 'ice', name: 'Лёд', color: '#00bfff', price: 50, effect: 'ice' }
         ]
     };
 
@@ -242,15 +217,152 @@
     function applyBackground() {
         const bg = store.backgrounds.find(b => b.id === activeBg);
         container.style.background = bg.style;
-        if(bg.type === 'wood') container.style.backgroundSize = 'auto';
-        else container.style.backgroundSize = 'cover';
     }
     applyBackground();
 
     const fruitTypes = [
-        { name: '🍉', color: '#2ecc71', splashColor: '#e74c3c', radius: 30 },
-        { name: '🍎', color: '#e74c3c', splashColor: '#f1c40f', radius: 25 },
-        { name: '🍌', color: '#f1c40f', splashColor: '#f39c12', radius: 22 },
-        { name: '🥥', color: '#ffffff', splashColor: '#ecf0f1', radius: 26 },
-        { name: '🍓', color: '#e84393', splashColor: '#e84393', radius
-  
+        { name: '🍉', splashColor: '#e74c3c', radius: 30 },
+        { name: '🍎', splashColor: '#f1c40f', radius: 25 },
+        { name: '🍌', splashColor: '#f39c12', radius: 22 }
+    ];
+
+    class GameObject {
+        constructor(isBomb = false) {
+            this.isBomb = isBomb;
+            this.radius = isBomb ? 28 : fruitTypes[Math.floor(Math.random() * fruitTypes.length)].radius;
+            this.fruitInfo = isBomb ? null : fruitTypes[Math.floor(Math.random() * fruitTypes.length)];
+            this.x = Math.random() * (canvas.width - 60) + 30;
+            this.y = canvas.height + 40;
+            this.vx = (canvas.width / 2 - this.x) * 0.015 + (Math.random() - 0.5) * 2;
+            this.vy = -(Math.random() * 4 + 12); 
+            this.gravity = 0.23;
+            this.sliced = false;
+            this.sliceAngle = 0;
+            this.rotation = Math.random() * Math.PI * 2;
+            this.rotationSpeed = (Math.random() - 0.5) * 0.04;
+        }
+        update() {
+            this.x += this.vx; this.y += this.vy; this.vy += this.gravity; this.rotation += this.rotationSpeed;
+            if (this.sliced && !this.isBomb) this.sliceAngle += 0.1;
+        }
+        draw() {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.rotation);
+            ctx.font = `${this.radius * 1.5}px Arial`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            if (this.isBomb) {
+                ctx.fillText('💣', 0, 0);
+            } else {
+                if (!this.sliced) {
+                    ctx.fillText(this.fruitInfo.name, 0, 0);
+                } else {
+                    ctx.save(); ctx.translate(-10 - this.sliceAngle*5, 0); ctx.fillText(this.fruitInfo.name, 0, 0); ctx.restore();
+                    ctx.save(); ctx.translate(10 + this.sliceAngle*5, 0); ctx.fillText(this.fruitInfo.name, 0, 0); ctx.restore();
+                }
+            }
+            ctx.restore();
+        }
+    }
+
+    class Particle {
+        constructor(x, y, color) {
+            this.x = x; this.y = y; this.color = color;
+            this.vx = (Math.random() - 0.5) * 6; this.vy = (Math.random() - 0.5) * 6;
+            this.radius = Math.random() * 3 + 2; this.alpha = 1;
+        }
+        update() { this.x += this.vx; this.y += this.vy; this.alpha -= 0.04; }
+        draw() {
+            ctx.save(); ctx.globalAlpha = this.alpha; ctx.fillStyle = this.color;
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); ctx.fill(); ctx.restore();
+        }
+    }
+
+    function checkSlice(x1, y1, x2, y2) {
+        objects.forEach(obj => {
+            if (obj.sliced) return;
+            let A = x2 - x1; let B = y2 - y1;
+            let num = Math.abs(A * (y1 - obj.y) - (x1 - obj.x) * B);
+            let den = Math.sqrt(A * A + B * B);
+            let distance = den === 0 ? 999 : num / den;
+            if (distance < obj.radius && obj.x >= Math.min(x1, x2)-obj.radius && obj.x <= Math.max(x1, x2)+obj.radius) {
+                obj.sliced = true;
+                if (obj.isBomb) {
+                    score = 0; objects = [];
+                    document.getElementById('score-display').innerText = `Очки: 0`;
+                } else {
+                    score++; if(Math.random() < 0.4) coins++;
+                    document.getElementById('score-display').innerText = `Очки: ${score}`;
+                    document.getElementById('coins-display').innerText = `💰: ${coins}`;
+                    for(let i=0; i<10; i++) particles.push(new Particle(obj.x, obj.y, obj.fruitInfo.splashColor));
+                }
+            }
+        });
+    }
+
+    function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (gameState === 'PLAYING') {
+            spawnTimer++;
+            if (spawnTimer > 45) { 
+                spawnTimer = 0;
+                objects.push(new GameObject(Math.random() > 0.75));
+            }
+            for (let i = objects.length - 1; i >= 0; i--) {
+                objects[i].update(); objects[i].draw();
+                if (objects[i].y > canvas.height + 100) objects.splice(i, 1);
+            }
+        }
+        // Шлейф лезвия
+        sliceLines = sliceLines.filter(p => { p.age--; return p.age > 0; });
+        if (sliceLines.length >= 2) {
+            const currentBlade = store.blades.find(b => b.id === activeBlade);
+            ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+            for (let i = 1; i < sliceLines.length; i++) {
+                ctx.beginPath(); ctx.moveTo(sliceLines[i-1].x, sliceLines[i-1].y); ctx.lineTo(sliceLines[i].x, sliceLines[i].y);
+                ctx.lineWidth = (sliceLines[i-1].age / 12) * 7; ctx.strokeStyle = currentBlade.color; ctx.stroke();
+            }
+            ctx.restore();
+        }
+        // Частицы
+        for (let i = particles.length - 1; i >= 0; i--) {
+            particles[i].update(); particles[i].draw();
+            if (particles[i].alpha <= 0) particles.splice(i, 1);
+        }
+        requestAnimationFrame(gameLoop);
+    }
+
+    // УПРАВЛЕНИЕ МЕЧОМ (активно только во время игры)
+    let isDrawing = false; let lastPoint = null;
+    function getPos(e) {
+        let t = e.touches ? e.touches[0] : e;
+        const rect = canvas.getBoundingClientRect();
+        return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+    }
+    window.addEventListener('mousedown', (e) => {
+        if(gameState !== 'PLAYING') return;
+        isDrawing = true; lastPoint = getPos(e);
+    });
+    window.addEventListener('mousemove', (e) => {
+        if (!isDrawing || gameState !== 'PLAYING') return;
+        let p = getPos(e); sliceLines.push({ x: p.x, y: p.y, age: 12 });
+        checkSlice(lastPoint.x, lastPoint.y, p.x, p.y); lastPoint = p;
+    });
+    window.addEventListener('mouseup', () => isDrawing = false);
+
+    window.addEventListener('touchstart', (e) => {
+        if(gameState !== 'PLAYING') return;
+        isDrawing = true; lastPoint = getPos(e);
+    });
+    window.addEventListener('touchmove', (e) => {
+        if (!isDrawing || gameState !== 'PLAYING') return;
+        let p = getPos(e); sliceLines.push({ x: p.x, y: p.y, age: 12 });
+        checkSlice(lastPoint.x, lastPoint.y, p.x, p.y); lastPoint = p;
+    });
+    window.addEventListener('touchend', () => isDrawing = false);
+
+    // ПРОСТЫЕ КЛИКИ НА КНОПКИ (100% надёжность)
+    document.getElementById('start-btn').onclick = function() {
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('gui').classList.remove
+    
